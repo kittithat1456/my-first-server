@@ -1,23 +1,35 @@
-// 1. เรียกใชงาน Module ที่ชื่อวา 'http' ซึ่งเปนระบบพื้นฐานของ Node.js สําหรับทําเซิรฟ เวอร
- const http = require('http');
+// =============================
+// ข้อความตอบโต้ Ice Bear
+// =============================
+const messages = [
+    "🐻 Ice Bear : สวัสดี กัน!",
+    "❄️ วันนี้เขียนโค้ดแล้วหรือยัง?",
+    "💻 Programmer ที่ดี เรียนรู้ทุกวัน",
+    "🚀 เป้าหมายความรวย เริ่มจากความรู้",
+    "🔥 Keep Coding Keep Growing",
+    "🎯 ความสำเร็จเริ่มจากการลงมือทำ"
+];
 
- // 2. กําหนดชองทาง (Port) ที่เซิรฟเวอรจะใชสื่อสาร โดยใหใชของที่ Cloud กําหนดมา(process.env.PORT) ถาไมมีใหใช 3000
- const port = process.env.PORT || 3000;
+// =============================
+// เมื่อกดปุ่ม
+// =============================
+function iceBearTalk() {
+    const random = messages[Math.floor(Math.random() * messages.length)];
 
- // 3. สรางเครื่องแมขาย (Server) ที่คอยรับคําขอ (req) และตอบกลับ (res)
- const server = http.createServer((req, res) => {
+    document.getElementById("message").innerHTML = random;
+}
 
- // 3.1 ตั้งรหัสสถานะ 200 หมายถึง "ทํางานสําเร็จ (OK)"
- res.statusCode = 200;
+// =============================
+// สร้างหิมะ
+// =============================
+const snow = document.getElementById("snow");
 
- // 3.2 บอกเบราวเซอรของผูใชวา สิ่งที่สงกลับไปคือไฟลขอความแบบ HTML และรองรับภาษาไทย (utf-8)
- res.setHeader('Content-Type', 'text/html; charset=utf-8');
+for (let i = 0; i < 40; i++) {
+    const s = document.createElement("span");
 
-// 3.3 สงขอมูลหนาเว็บกลับไปหาผูใช (*** ใหนักศึกษาแกชื่อ-นามสกุลตรงนี้ ***)
-res.end('<h1>สวัสดีครับ! นี่คือ Web Server ของ นายกิตติทัต จานเขื่อง รหัสนักศึกษา 69319010107 </h1><p>เครื่องแม่ข่ายทํางานปกติบนระบบ Railway แล้วครับผม!</p>');
- });
+    s.style.left = Math.random() * 100 + "%";
+    s.style.animationDuration = (Math.random() * 5 + 5) + "s";
+    s.style.opacity = Math.random();
 
- // 4. สั่งใหเซิรฟเวอรเริ่มตนเปดรับฟงการเชื่อมตอตาม Port ที่กําหนดไว
- server.listen(port, () => {
- console.log(`Server is running! เครื่องแม่ข่ายเปิดทํางานแล้วที่ช่องทาง: ${port}`);
- });
+    snow.appendChild(s);
+}
