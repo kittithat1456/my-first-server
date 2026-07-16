@@ -1,14 +1,3 @@
-{
-  "name": "my-first-server",
-  "version": "1.0.0",
-  "scripts": {
-  "start": "node server.js"
- }
-}
--------------------
-
-server.js
--------------------
 // 1. เรียกใชงาน Module ที่ชื่อวา 'http' ซึ่งเปนระบบพื้นฐานของ Node.js สําหรับทําเซิรฟ เวอร
  const http = require('http');
 
