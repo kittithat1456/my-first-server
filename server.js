@@ -21,9 +21,10 @@ const server = http.createServer(async (req, res) => {
 
     result.rows.forEach((row, index) => {
       rows += `
-      <tr style="animation-delay:${index * 0.1}s">
-          <td>${row.student_id}</td>
-          <td>${row.student_name}</td>
+      <tr style="animation-delay:${index * 0.08}s">
+          <td><span class="prefix">></span> ${row.student_id}</td>
+          <td class="student-name">${row.student_name}</td>
+          <td><span class="badge">ACCESS_GRANTED</span></td>
       </tr>`;
     });
 
@@ -34,228 +35,230 @@ const server = http.createServer(async (req, res) => {
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYSTEM_OVERRIDE // STUDENT_DB</title>
 
-<title>Student Database</title>
+<!-- ใช้ Google Font แบบ Hacker/Terminal -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:'Segoe UI',sans-serif;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Fira Code', 'Kanit', monospace;
 }
 
-body{
-background:#030712;
-overflow:hidden;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
-color:white;
+body {
+  background: #030712;
+  overflow-x: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  color: #00ff66;
+  padding: 20px 0;
 }
 
-/* ---------- พื้นหลัง ---------- */
-
-.background{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-overflow:hidden;
-z-index:-2;
-background:
-radial-gradient(circle at top,#1e3a8a 0%,#030712 60%);
+/* ---------- CRT Scanline Effect ---------- */
+body::before {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+  background-size: 100% 4px;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0.6;
 }
 
-/* ดาว */
-
-.star{
-position:absolute;
-width:2px;
-height:120px;
-background:linear-gradient(transparent,#38bdf8);
-opacity:.5;
-animation:fall linear infinite;
+/* ---------- Canvas พื้นหลัง Matrix Rain ---------- */
+#matrix-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  opacity: 0.35;
 }
 
-@keyframes fall{
-
-0%{
-transform:translateY(-150px);
+/* ---------- Card / Terminal Window ---------- */
+.container {
+  width: 950px;
+  max-width: 92%;
+  background: rgba(5, 15, 10, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid #00ff66;
+  border-radius: 8px;
+  padding: 30px;
+  box-shadow: 
+    0 0 20px rgba(0, 255, 102, 0.2),
+    inset 0 0 15px rgba(0, 255, 102, 0.1);
+  position: relative;
+  transition: all 0.3s ease;
 }
 
-100%{
-transform:translateY(120vh);
+.container:hover {
+  box-shadow: 
+    0 0 35px rgba(0, 255, 102, 0.4),
+    inset 0 0 20px rgba(0, 255, 102, 0.15);
+  border-color: #33ff88;
 }
 
+/* ---------- Header & Terminal Controls ---------- */
+.terminal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(0, 255, 102, 0.3);
+  padding-bottom: 15px;
+  margin-bottom: 25px;
 }
 
-/* วงกลมเรืองแสง */
-
-.glow{
-position:absolute;
-border-radius:50%;
-filter:blur(120px);
-opacity:.3;
-animation:move 12s infinite alternate;
+.terminal-buttons {
+  display: flex;
+  gap: 8px;
 }
 
-.glow:nth-child(1){
-width:300px;
-height:300px;
-background:#2563eb;
-left:-100px;
-top:100px;
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
 }
 
-.glow:nth-child(2){
-width:250px;
-height:250px;
-background:#06b6d4;
-right:-80px;
-bottom:50px;
+.dot-red { background: #ff5f56; box-shadow: 0 0 8px #ff5f56; }
+.dot-yellow { background: #ffbd2e; box-shadow: 0 0 8px #ffbd2e; }
+.dot-green { background: #27c93f; box-shadow: 0 0 8px #27c93f; }
+
+.status-tag {
+  font-size: 12px;
+  color: #00ff66;
+  letter-spacing: 1px;
+  animation: blink 1.5s infinite;
 }
 
-@keyframes move{
-to{
-transform:translateY(-80px) translateX(80px);
-}
-}
-
-/* ---------- Card ---------- */
-
-.container{
-
-width:900px;
-max-width:95%;
-
-background:rgba(255,255,255,.06);
-backdrop-filter:blur(15px);
-
-border:1px solid rgba(255,255,255,.1);
-
-border-radius:25px;
-
-padding:40px;
-
-box-shadow:
-0 0 40px rgba(37,99,235,.35);
-
-transition:.4s;
-
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
 }
 
-.container:hover{
-
-transform:translateY(-8px);
-
-box-shadow:
-0 0 60px rgba(14,165,233,.7);
-
+h1 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 28px;
+  color: #00ff66;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(0, 255, 102, 0.7);
 }
 
-h1{
-
-text-align:center;
-margin-bottom:25px;
-font-size:34px;
-color:#7dd3fc;
-text-shadow:
-0 0 10px #38bdf8,
-0 0 30px #2563eb;
-
+/* ---------- System Status Bar ---------- */
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  background: rgba(0, 255, 102, 0.05);
+  border: 1px dashed rgba(0, 255, 102, 0.3);
+  padding: 10px 15px;
+  font-size: 13px;
+  margin-bottom: 20px;
+  color: #a3ffcc;
 }
 
 /* ---------- Table ---------- */
-
-table{
-
-width:100%;
-border-collapse:collapse;
-overflow:hidden;
-border-radius:18px;
-
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 8px;
 }
 
-th{
-
-background:linear-gradient(90deg,#1d4ed8,#0ea5e9);
-
-padding:18px;
-
-font-size:18px;
-
+th {
+  background: rgba(0, 255, 102, 0.15);
+  color: #00ff66;
+  padding: 14px;
+  font-size: 15px;
+  text-align: left;
+  border-top: 1px solid #00ff66;
+  border-bottom: 1px solid #00ff66;
+  letter-spacing: 1px;
 }
 
-td{
-
-padding:16px;
-
-text-align:center;
-
-background:rgba(255,255,255,.04);
-
-transition:.35s;
-
+td {
+  padding: 12px 14px;
+  background: rgba(0, 30, 15, 0.6);
+  border-top: 1px solid rgba(0, 255, 102, 0.1);
+  border-bottom: 1px solid rgba(0, 255, 102, 0.1);
+  color: #e0ffe8;
+  font-size: 14px;
+  transition: all 0.25s ease;
 }
 
-tr{
+td:first-child { border-left: 1px solid rgba(0, 255, 102, 0.1); border-radius: 4px 0 0 4px; }
+td:last-child { border-right: 1px solid rgba(0, 255, 102, 0.1); border-radius: 0 4px 4px 0; text-align: right; }
 
-animation:fade .8s forwards;
-opacity:0;
-
+.prefix {
+  color: #00ff66;
+  font-weight: bold;
 }
 
-@keyframes fade{
-
-from{
-
-opacity:0;
-transform:translateX(-30px);
-
+.badge {
+  background: rgba(0, 255, 102, 0.1);
+  border: 1px solid #00ff66;
+  color: #00ff66;
+  padding: 2px 8px;
+  font-size: 10px;
+  border-radius: 3px;
+  letter-spacing: 1px;
 }
 
-to{
-
-opacity:1;
-transform:translateX(0);
-
+tr {
+  animation: scanIn 0.5s ease-out forwards;
+  opacity: 0;
 }
 
+@keyframes scanIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-tbody tr:hover td{
-
-background:rgba(14,165,233,.2);
-
-transform:scale(1.02);
-
-color:#7dd3fc;
-
-cursor:pointer;
-
+tbody tr:hover td {
+  background: rgba(0, 255, 102, 0.15);
+  color: #ffffff;
+  border-color: #00ff66;
+  box-shadow: 0 0 10px rgba(0, 255, 102, 0.2);
+  cursor: pointer;
 }
 
-/* ---------- Scroll ---------- */
-
-::-webkit-scrollbar{
-width:10px;
+/* ---------- Scrollbar ---------- */
+::-webkit-scrollbar {
+  width: 6px;
 }
 
-::-webkit-scrollbar-thumb{
-background:#2563eb;
-border-radius:20px;
+::-webkit-scrollbar-track {
+  background: #030712;
 }
 
-.footer{
+::-webkit-scrollbar-thumb {
+  background: #00ff66;
+  border-radius: 3px;
+}
 
-margin-top:20px;
-text-align:center;
-color:#94a3b8;
-
+.footer {
+  margin-top: 25px;
+  text-align: center;
+  color: #008833;
+  font-size: 12px;
+  letter-spacing: 1px;
 }
 
 </style>
@@ -264,53 +267,86 @@ color:#94a3b8;
 
 <body>
 
-<div class="background">
-
-<div class="glow"></div>
-<div class="glow"></div>
-
-${Array.from({length:80},(_,i)=>`
-<div class="star"
-style="
-left:${Math.random()*100}%;
-animation-duration:${5+Math.random()*8}s;
-animation-delay:${Math.random()*5}s;
-">
-</div>
-`).join("")}
-
-</div>
+<canvas id="matrix-canvas"></canvas>
 
 <div class="container">
 
-<h1>🎓 ฐานข้อมูลนักศึกษา</h1>
+  <div class="terminal-header">
+    <div class="terminal-buttons">
+      <span class="dot dot-red"></span>
+      <span class="dot dot-yellow"></span>
+      <span class="dot dot-green"></span>
+    </div>
+    <div class="status-tag">[ SECURE_CONNECTION // PORT: ${port} ]</div>
+  </div>
 
-<table>
+  <h1>☠️ STUDENT_DATABASE // ROOT_ACCESS</h1>
 
-<thead>
+  <div class="status-bar">
+    <span>> TARGET: PostgreSQL_Cluster</span>
+    <span>> FETCHED: ${result.rows.length} RECORDS</span>
+    <span>> STATUS: OPERATIONAL</span>
+  </div>
 
-<tr>
+  <table>
+    <thead>
+      <tr>
+        <th>ID_CODE</th>
+        <th>NAME_IDENTIFIER</th>
+        <th style="text-align: right;">STATUS</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows}
+    </tbody>
+  </table>
 
-<th>รหัสนักศึกษา</th>
-<th>ชื่อ - นามสกุล</th>
+  <div class="footer">
+    [ SYSTEM: NODE.JS ] • [ DB: POSTGRESQL ] • [ ENCRYPTION: AES-256 ]
+  </div>
 
-</tr>
-
-</thead>
-
-<tbody>
-
-${rows}
-
-</tbody>
-
-</table>
-
-<div class="footer">
-Blue Theme • PostgreSQL • Node.js
 </div>
 
-</div>
+<!-- Matrix Rain Animation Effect Script -->
+<script>
+  const canvas = document.getElementById('matrix-canvas');
+  const ctx = canvas.getContext('2d');
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン';
+  const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*';
+  const alphabet = katakana + latin;
+
+  const fontSize = 16;
+  const columns = Math.floor(canvas.width / fontSize);
+  const rainDrop = Array(columns).fill(1);
+
+  function draw() {
+    ctx.fillStyle = 'rgba(3, 7, 18, 0.05)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = '#00ff66';
+    ctx.font = fontSize + 'px monospace';
+
+    for (let i = 0; i < rainDrop.length; i++) {
+      const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+      ctx.fillText(text, i * fontSize, rainDrop[i] * fontSize);
+
+      if (rainDrop[i] * fontSize > canvas.height && Math.random() > 0.975) {
+        rainDrop[i] = 0;
+      }
+      rainDrop[i]++;
+    }
+  }
+
+  setInterval(draw, 30);
+</script>
 
 </body>
 </html>
@@ -321,23 +357,24 @@ Blue Theme • PostgreSQL • Node.js
     res.end(`
     <body style="
     background:#030712;
-    color:white;
+    color:#ff3333;
     display:flex;
     justify-content:center;
     align-items:center;
     height:100vh;
-    font-family:sans-serif;
+    font-family:'Courier New', monospace;
     ">
         <div style="
-        background:#111827;
+        background:rgba(20, 0, 0, 0.9);
         padding:40px;
-        border-radius:20px;
-        border:1px solid #2563eb;
-        box-shadow:0 0 40px #2563eb;
+        border-radius:8px;
+        border:1px solid #ff3333;
+        box-shadow:0 0 30px rgba(255, 51, 51, 0.4);
         text-align:center;
+        max-width:500px;
         ">
-            <h1 style="color:#38bdf8;">เกิดข้อผิดพลาด</h1>
-            <p>${err.message}</p>
+            <h1 style="color:#ff3333; margin-bottom:15px;">[!] SYSTEM ERROR</h1>
+            <p style="color:#ff8888; font-size:14px;">${err.message}</p>
         </div>
     </body>
     `);
